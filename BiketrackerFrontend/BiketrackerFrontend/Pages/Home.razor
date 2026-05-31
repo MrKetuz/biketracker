@@ -1,0 +1,155 @@
+﻿@page "/"
+@inject IJSRuntime JS
+@inject ILogger<Home> Logger
+@using BiketrackerFrontend.DataStruts
+@using Microsoft.Extensions.Logging
+
+
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+
+
+
+  <RealTimeMap 
+      @ref="realTimeMap"
+      Parameters="parameters" 
+      height="calc(100vh - 10rem)" 
+      width="calc(100vw - 18rem)"></RealTimeMap>
+
+
+
+<button @onclick=AddPoints>Start</button>
+<button @onclick=addNewPoints>Add Points</button>
+<button @onclick=debugValues>Debug</button>
+
+@code {
+    RealTimeMap? realTimeMap;
+    private List<GpsPoint> _points = new();
+    private int _index = 0;
+    private 
+
+
+         RealTimeMap.LoadParameters parameters = new RealTimeMap.LoadParameters()  //general map settings
+         {
+             location = new RealTimeMap.Location()
+             {
+                 latitude = 56.196140,      
+                 longitude = 11.154482,
+             },
+             zoomLevel = 8
+         };
+
+    List<List<double>> coordinates = new List<List<double>>() {
+    new List<double>() { 55.431559, 9.269902 },
+    new List<double>() { 55.433119, 9.289933 },
+    new List<double>() { 55.436990, 9.301812 },
+    new List<double>() { 55.434586, 9.287510 },
+    new List<double>() { 55.439917, 9.270226 }
+    };
+
+    List<GpsPoint> data = new List<GpsPoint>()
+    {
+        new GpsPoint()
+        {
+            Lat = 55.431559,
+            Lng = 9.269902,
+            Timestamp = DateTime.Now
+        },
+
+        new GpsPoint()
+        {
+            Lat = 55.433119,
+            Lng = 9.289933,
+            Timestamp = DateTime.Now
+        },
+
+        new GpsPoint()
+        {
+            Lat = 55.436990,
+            Lng = 9.301812,
+            Timestamp = DateTime.Now
+        },
+
+        new GpsPoint()
+        {
+            Lat = 55.434586,
+            Lng = 9.287510,
+            Timestamp = DateTime.Now
+        },
+        /*
+        new GpsPoint()
+        {
+            Lat = 55.439917,
+            Lng = 9.270226,
+            Timestamp = DateTime.Now
+        },
+        */
+    };
+
+
+
+    bool run = false;
+
+    List<RealTimeMap.StreamPoint> points = new List<RealTimeMap.StreamPoint>();
+
+    private void addDummyData(List<GpsPoint> GpsPointList)
+    {
+
+        RealTimeMap.StreamPoint tempPoint = new RealTimeMap.StreamPoint();
+
+        foreach (GpsPoint coordinates in GpsPointList)
+        {
+            tempPoint.latitude = coordinates.Lat;
+            tempPoint.longitude = coordinates.Lng;
+            tempPoint.timestamp = coordinates.Timestamp;
+            tempPoint.value = "Bike Marker #X";
+            tempPoint.type = "bike marker";
+
+            points.Add(tempPoint);
+
+
+        }
+
+    }
+
+
+    private void AddPoints()
+    {
+        realTimeMap.Geometric.Points.changeExtentWhenAddPoints = true;
+        realTimeMap.Geometric.Points.Appearance().pattern = new RealTimeMap.PointSymbol()
+        {
+            color = "red",
+            fillColor = "red",
+            fillOpacity = 0.6,
+            radius = 7
+        };
+
+        realTimeMap.Geometric.Points.AppearanceOnType(item => item.type == "bike marker").pattern = new RealTimeMap.PointTooltip()
+        {
+            content = "<h6>${value}</h6>${type}</br>${guid}</br>${latitude}</br>${longitude}",
+            opacity = 0.8,
+            permanent = false
+        };
+
+
+        realTimeMap.Geometric.Points.upload(points);
+    }
+
+    private void addNewPoints()
+    {
+        addDummyData(data);
+    }
+
+    private void debugValues()
+    {
+
+
+        Logger.LogWarning(realTimeMap.Geometric.Points.getItems().ToString());
+        
+    }
+}

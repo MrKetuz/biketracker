@@ -16,7 +16,9 @@ namespace LocationDisplayer
             InitializeComponent();
 
         }
-
+        /* 
+         Starts tracking and stops tracking
+         */
         private async void OnTrackerStart(object sender, EventArgs e)
         {
             PermissionStatus status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
@@ -32,6 +34,9 @@ namespace LocationDisplayer
 
                 Startbtn.Text = "Stop";
 
+                //Stopgap to prevent the screen turning off 
+                DeviceDisplay.Current.KeepScreenOn = true;
+
                 _cancelTokenSource = new CancellationTokenSource();
 
                 _ = StartTracking(_cancelTokenSource.Token);
@@ -42,6 +47,9 @@ namespace LocationDisplayer
                 isTracking = false;
 
                 Startbtn.Text = "START";
+
+                //Stopgap to prevent the screen turning off 
+                DeviceDisplay.Current.KeepScreenOn = false;
 
                 _cancelTokenSource?.Cancel();
 
@@ -69,9 +77,13 @@ namespace LocationDisplayer
             catch (Exception ex)
             {
                 Trace.WriteLine($"There was an error connecting to the backend. Exception: {ex.Message}");
+                await DisplayAlert("Error", $"There was an error attempting to send the data. Error: {ex.Message}", ":(");
             }
 
         }
+        /* 
+         Does the actual tracking, takes very precise geolocation coords every 10 seconds
+         */
         private async Task StartTracking(CancellationToken token)
         {
             GeolocationRequest request;
@@ -81,8 +93,6 @@ namespace LocationDisplayer
                 try
                 {
                     request = new GeolocationRequest(GeolocationAccuracy.Best);
-
-                    //TODO add timestamp to reference the time difference between locations taken
 
                     Location? location = await Geolocation.Default.GetLocationAsync(request, _cancelTokenSource.Token);
                     
@@ -99,7 +109,7 @@ namespace LocationDisplayer
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"An error has occured, Exception: {ex.Message}");
+                    Trace.WriteLine($"An error has occured, Exception: {ex.Message}");
                 }
 
                 await Task.Delay(10000, token);
