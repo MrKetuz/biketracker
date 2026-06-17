@@ -25,7 +25,7 @@ Welcome to your new app.
 
 <button @onclick=AddPoints>Start</button>
 <button @onclick=addNewPoints>Add Points</button>
-<button @onclick=debugValues>Debug</button>
+<button @onclick=AddPointsTest>Debug</button>
 
 @code {
     RealTimeMap? realTimeMap;
@@ -63,6 +63,13 @@ Welcome to your new app.
 
         new GpsPoint()
         {
+            Lat = 55.431712,
+            Lng = 9.271040,
+            Timestamp = DateTime.Now
+        },
+
+        new GpsPoint()
+        {
             Lat = 55.433119,
             Lng = 9.289933,
             Timestamp = DateTime.Now
@@ -81,14 +88,14 @@ Welcome to your new app.
             Lng = 9.287510,
             Timestamp = DateTime.Now
         },
-        /*
+
         new GpsPoint()
         {
             Lat = 55.439917,
             Lng = 9.270226,
             Timestamp = DateTime.Now
         },
-        */
+
     };
 
 
@@ -138,6 +145,63 @@ Welcome to your new app.
 
 
         realTimeMap.Geometric.Points.upload(points);
+    }
+
+    private void AddPointsTest()
+    {
+
+
+
+        
+        List<GeoJSONItem> inputPointsList = new();
+        foreach (var point in data)
+        {
+            inputPointsList.Add(new GeoJSONItem()
+            {
+                type = "Feature",
+                geometry = new PointGeometry()
+                {
+                    type = "Point",
+                    coordinates = new double[2] { point.Lat, point.Lng },
+                    properties = new Properties()
+                    {
+                        dateTime = DateTime.Now,
+                        },
+                    },
+                });
+            }
+        
+
+
+
+                    realTimeMap.Geometric.DataFromGeoJSON.addObject(inputPointsList.ToArray());
+
+                    realTimeMap.Geometric.DataFromGeoJSON.getItems()
+
+                    /*
+    foreach (var point in data)
+        {
+            realTimeMap.Geometric.DisplayPointsFromArray.addLabel(
+                new RealTimeMap.LabelInfo
+                            {
+                                coordinates = new[] {point.Lat, point.Lng },
+                                text = $"📍<br/>{point.Timestamp}"
+                            }
+            );
+        }
+*/
+                     realTimeMap.Geometric.DisplayPolylinesFromArray.addMeasure(
+                        new RealTimeMap.MeasureLine
+                        {
+                         start = new[] { 55.431559, 9.269902 },
+                         end = new[] { 55.431712, 9.271040 },
+
+                            content = "Distance: 120m | Speed: 18 km/h",
+
+                            labelStyle = "background:white;padding:4px;border-radius:4px;font-size:12px;"
+                        }
+                    );
+
     }
 
     private void addNewPoints()

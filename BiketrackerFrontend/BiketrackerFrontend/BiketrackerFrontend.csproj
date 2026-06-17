@@ -6,6 +6,29 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <!-- Ensure Debug builds emit portable PDBs and disable linking so Blazor WASM debugging can load symbols -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <BlazorWebAssemblyEnableLinking>false</BlazorWebAssemblyEnableLinking>
+    <PublishTrimmed>false</PublishTrimmed>
+  </PropertyGroup>
+
+  <!-- If the project is nested in a folder, Visual Studio may serve content from the parent folder.
+       Copy the built _framework assets to the parent's bin folder so the dev server can serve them. -->
+  <Target Name="CopyWasmFrameworkToParent" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+    <PropertyGroup>
+      <WasmFrameworkSource>$(OutputPath)wwwroot\_framework\</WasmFrameworkSource>
+      <WasmFrameworkDest>$(MSBuildProjectDirectory)\..\bin\$(Configuration)\$(TargetFramework)\wwwroot\_framework\</WasmFrameworkDest>
+    </PropertyGroup>
+    <Message Importance="Low" Text="Copying Blazor _framework files from $(WasmFrameworkSource) to $(WasmFrameworkDest)" />
+    <MakeDir Directories="$(WasmFrameworkDest)" Condition="!Exists('$(WasmFrameworkDest)')" />
+    <ItemGroup>
+      <WasmFrameworkFiles Include="$(WasmFrameworkSource)**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(WasmFrameworkFiles)" DestinationFolder="$(WasmFrameworkDest)%(RecursiveDir)" SkipUnchangedFiles="true" />
+  </Target>
+
   <ItemGroup>
     <PackageReference Include="LeafletForBlazor" Version="2.4.6.28" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0" />
