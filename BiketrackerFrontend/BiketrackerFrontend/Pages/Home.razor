@@ -106,7 +106,7 @@ Welcome to your new app.
 
     private void addDummyData(List<GpsPoint> GpsPointList)
     {
-
+        int val = 1;
         RealTimeMap.StreamPoint tempPoint = new RealTimeMap.StreamPoint();
 
         foreach (GpsPoint coordinates in GpsPointList)
@@ -114,11 +114,11 @@ Welcome to your new app.
             tempPoint.latitude = coordinates.Lat;
             tempPoint.longitude = coordinates.Lng;
             tempPoint.timestamp = coordinates.Timestamp;
-            tempPoint.value = "Bike Marker #X";
+            tempPoint.value = $"Bike Marker #{val}";
             tempPoint.type = "bike marker";
 
             points.Add(tempPoint);
-
+            val++;
 
         }
 
@@ -152,7 +152,7 @@ Welcome to your new app.
 
 
 
-        
+
         List<GeoJSONItem> inputPointsList = new();
         foreach (var point in data)
         {
@@ -169,38 +169,51 @@ Welcome to your new app.
                         },
                     },
                 });
-            }
-        
+        }
 
 
 
-                    realTimeMap.Geometric.DataFromGeoJSON.addObject(inputPointsList.ToArray());
 
-                    realTimeMap.Geometric.DataFromGeoJSON.getItems()
+        realTimeMap.Geometric.DataFromGeoJSON.addObject(inputPointsList.ToArray());
 
-                    /*
-    foreach (var point in data)
+        //realTimeMap.Geometric.DataFromGeoJSON.getItems();
+
+        /*
+        foreach (var point in data)
         {
             realTimeMap.Geometric.DisplayPointsFromArray.addLabel(
-                new RealTimeMap.LabelInfo
-                            {
-                                coordinates = new[] {point.Lat, point.Lng },
-                                text = $"📍<br/>{point.Timestamp}"
-                            }
+            new RealTimeMap.LabelInfo
+            {
+                coordinates = new[] {point.Lat, point.Lng },
+                text = $"📍<br/>{point.Timestamp}"
+                }
             );
+            }
+        */
+        int val = 0;
+
+
+        foreach (var point in data)
+        {
+            if (val != data.Count)
+            {
+                double lat1, lat2, lng1, lng2;
+                realTimeMap.Geometric.DisplayPolylinesFromArray.addMeasure(
+                new RealTimeMap.MeasureLine
+                {
+                    start = new[] { data[val].Lat, data[val].Lng },
+                    end = new[] { data[val+1].Lat, data[val+1].Lng },
+
+                    content = "Distance: 120m | Speed: 18 km/h",
+
+                    labelStyle = "background:white;padding:4px;border-radius:4px;font-size:12px;"
+                }
+                );
+                val++;
+            }
+
         }
-*/
-                     realTimeMap.Geometric.DisplayPolylinesFromArray.addMeasure(
-                        new RealTimeMap.MeasureLine
-                        {
-                         start = new[] { 55.431559, 9.269902 },
-                         end = new[] { 55.431712, 9.271040 },
 
-                            content = "Distance: 120m | Speed: 18 km/h",
-
-                            labelStyle = "background:white;padding:4px;border-radius:4px;font-size:12px;"
-                        }
-                    );
 
     }
 
