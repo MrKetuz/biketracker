@@ -8,24 +8,41 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
+<div class="map-layout">
 
 
-
-
-  <RealTimeMap 
+<div class="map">
+      <RealTimeMap 
       @ref="realTimeMap"
       Parameters="parameters" 
-      height="calc(100vh - 10rem)" 
-      width="calc(100vw - 18rem)"></RealTimeMap>
+      height="calc(80vh)" 
+      width="100%"></RealTimeMap>
+</div>
+<div class="infobox">   
+        @switch (State)
+    {
+        case InfoboxState.Overview:
+            <RouteOverview  />
+            break;
+
+        case InfoboxState.StartSelected:
+            <StartSelectedView  />
+            break;
+
+        case InfoboxState.SegmentSelected:
+            <SegmentView  />
+            break;
+    }
+
+</div>
+</div>
 
 
 
 <button @onclick=AddPoints>Start</button>
 <button @onclick=addNewPoints>Add Points</button>
 <button @onclick=AddPointsTest>Debug</button>
+
 
 @code {
     RealTimeMap? realTimeMap;
@@ -36,13 +53,22 @@ Welcome to your new app.
 
          RealTimeMap.LoadParameters parameters = new RealTimeMap.LoadParameters()  //general map settings
          {
-             location = new RealTimeMap.Location()
+            /* location = new RealTimeMap.Location()
              {
                  latitude = 56.196140,      
                  longitude = 11.154482,
-             },
+              },*/
              zoomLevel = 8
          };
+
+
+    enum InfoboxState
+    {
+        Overview,
+        StartSelected,
+        SegmentSelected
+    }
+    InfoboxState State = InfoboxState.Overview;
 
     List<List<double>> coordinates = new List<List<double>>() {
     new List<double>() { 55.431559, 9.269902 },
@@ -65,35 +91,35 @@ Welcome to your new app.
         {
             Lat = 55.431712,
             Lng = 9.271040,
-            Timestamp = DateTime.Now
+            Timestamp = DateTime.Now.AddSeconds(10)
         },
 
         new GpsPoint()
         {
             Lat = 55.433119,
             Lng = 9.289933,
-            Timestamp = DateTime.Now
+            Timestamp = DateTime.Now.AddSeconds(20)
         },
 
         new GpsPoint()
         {
             Lat = 55.436990,
             Lng = 9.301812,
-            Timestamp = DateTime.Now
+            Timestamp = DateTime.Now.AddSeconds(30)
         },
 
         new GpsPoint()
         {
             Lat = 55.434586,
             Lng = 9.287510,
-            Timestamp = DateTime.Now
+            Timestamp = DateTime.Now.AddSeconds(40)
         },
 
         new GpsPoint()
         {
             Lat = 55.439917,
             Lng = 9.270226,
-            Timestamp = DateTime.Now
+            Timestamp = DateTime.Now.AddSeconds(50)
         },
 
     };
@@ -150,7 +176,12 @@ Welcome to your new app.
     private void AddPointsTest()
     {
 
-
+        realTimeMap.View.setCenter = new RealTimeMap.Location()
+        {
+            latitude = data[1].Lat,
+            longitude = data[1].Lng,
+        };
+        realTimeMap.View.setZoomLevel = 16;
 
 
         List<GeoJSONItem> inputPointsList = new();
@@ -190,21 +221,30 @@ Welcome to your new app.
             );
             }
         */
-        int val = 0;
+                                                int val = 0;
 
 
         foreach (var point in data)
         {
             if (val != data.Count)
             {
-                double lat1, lat2, lng1, lng2;
+                double lat1 = data[val].Lat, lat2 = data[val + 1].Lat, lng1 = data[val].Lng, lng2 = data[val + 1].Lng;
+
+                DateTime timestamp1 = data[val].Timestamp, timestamp2 = data[val + 1].Timestamp;
+
+                double distance = calcDistanceBetweenPoints(lat1, lng1, lat2, lng2);
+
+                double speed = calcSpeed(distance, timestamp1, timestamp2);
+
                 realTimeMap.Geometric.DisplayPolylinesFromArray.addMeasure(
                 new RealTimeMap.MeasureLine
                 {
-                    start = new[] { data[val].Lat, data[val].Lng },
-                    end = new[] { data[val+1].Lat, data[val+1].Lng },
+                    start = new[] { lat1, lng1 },
+                    end = new[] { lat2, lng2 },
 
-                    content = "Distance: 120m | Speed: 18 km/h",
+
+
+                    content = $"Distance: {distance} Meters  {(timestamp1 != null ? "Speed: "+speed+" km/h" : "Speed not found" )}",
 
                     labelStyle = "background:white;padding:4px;border-radius:4px;font-size:12px;"
                 }
@@ -227,6 +267,36 @@ Welcome to your new app.
 
 
         Logger.LogWarning(realTimeMap.Geometric.Points.getItems().ToString());
-        
+
     }
+
+    //Calculates distance between two points, returns value as meters.
+    private double calcDistanceBetweenPoints(double lat1, double lng1, double lat2, double lng2)
+    {
+
+
+        double distance = realTimeMap.Geometric.Computations.distance(lat1, lng1, lat2, lng2, RealTimeMap.UnitOfMeasure.meters);
+        Logger.LogWarning($"Distance between points: {distance} meters");
+
+        return Math.Round(distance, 1);
+    }
+
+    private double calcSpeed (double distance, DateTime timestamp1, DateTime timestamp2)
+    {
+        return Math.Round(distance / (timestamp2 - timestamp1).TotalSeconds * 3.6, 1); //Speed in km/h
+    }
+
+    private void DEBUG()
+    {
+        DateTime timestamp = DateTime.Now;
+        Logger.LogWarning($"Current timestamp: {timestamp}");
+    }
+
+    public void onClickMap(RealTimeMap.ClicksMapArgs value)
+    {
+        //where value.sender is RealTimeMap control reference
+        Console.WriteLine(value.location.latitude);
+        Console.WriteLine(value.location.longitude);
+    }
+
 }
