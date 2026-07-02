@@ -11,28 +11,30 @@
 
         <div class="stat">
             <div class="label">Distance</div>
-            <div class="value">@Route.Distance km</div>
+            <div class="value">@SegmentOfRoute.Distance km</div>
         </div>
 
         <div class="stat">
             <div class="label">Time</div>
-            <div class="value">@Route.Duration.ToString(@"hh\:mm\:ss"); </div>
+            <div class="value">@SegmentOfRoute.Duration.ToString(@"hh\:mm\:ss"); </div>
         </div>
 
         <div class="stat">
             <div class="label">Avg Speed</div>
-            <div class="value">@Route.Speed km/h</div>
+            <div class="value">@SegmentOfRoute.Speed km/h</div>
         </div>
 
     </div>
-
-    <div class="hint">
-        Click the map to select a segment
-    </div>
-
+    <button @onclick="onreset">
+        Back to Overview
+    </button>
 </div>
 
 @code {
     [Parameter]
-    public SegmentStats Route { get; set; }
+    public SegmentStats SegmentOfRoute { get; set; }
+
+    [Parameter]
+    public EventCallback onreset { get; set; }
 }
+

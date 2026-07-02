@@ -1,0 +1,22 @@
+﻿<div class="start-selected">
+
+    <h3>Start Selected</h3>
+
+    <div class="status">
+        📍 Start point locked on route
+    </div>
+
+    <div class="hint">
+        Select an end point to create a segment
+    </div>
+
+    <button @onclick="onreset">
+        Cancel Selection
+    </button>
+
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback onreset { get; set; }
+}

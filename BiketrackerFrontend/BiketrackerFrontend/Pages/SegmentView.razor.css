@@ -1,0 +1,37 @@
+/* CSS for SegmentView component */
+.route-overview {
+    padding: 1rem;
+}
+
+.route-subtitle {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    margin-bottom: 1rem;
+}
+
+.stats-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.stat {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.label {
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
+
+.value {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.hint {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
