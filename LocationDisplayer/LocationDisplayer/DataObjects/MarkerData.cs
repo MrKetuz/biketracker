@@ -8,7 +8,7 @@ namespace LocationDisplayer.DataObjects
 {
     public class MarkerData
     {
-        public string timestamp { get; set; }
+        public DateTime timestamp { get; set; }
         public double latitude { get; set; }
         public double longitude { get; set; }
 

@@ -36,6 +36,14 @@
                 SemanticProperties.Hint="Sends the data"
                 Clicked="OnSendData"
                 HorizontalOptions="Fill" />
+
+            <Button
+                x:Name="Exportbtn"
+                Text="Export Data" 
+                SemanticProperties.Hint="Opens a page of Exportable JSON"
+                Clicked="OnExportData"
+                HorizontalOptions="Fill" />
+
         </VerticalStackLayout>
     </ScrollView>
 

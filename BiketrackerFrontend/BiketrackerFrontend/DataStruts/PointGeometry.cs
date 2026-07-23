@@ -5,5 +5,6 @@
         public string? type { get; set; } = "Point";
         public double[]? coordinates { get; set; }
         public Properties? properties { get; set; }
+        public visibilityZoomLevels? visibilityZoomLevels { get; set; }
     }
 }

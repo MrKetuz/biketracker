@@ -1,4 +1,5 @@
-﻿using LocationDisplayer.DataObjects;
+﻿using GoogleGson;
+using LocationDisplayer.DataObjects;
 using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -11,6 +12,27 @@ namespace LocationDisplayer
         List<MarkerData> locations = new List<MarkerData>();
         private CancellationTokenSource _cancelTokenSource;
         bool isTracking = false;
+        private string exportText = "";
+        public string ExportText
+        {
+            get => exportText;
+            set
+            {
+                exportText = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private bool showExport;
+        public bool ShowExport
+        {
+            get => showExport;
+            set
+            {
+                showExport = value;
+                OnPropertyChanged();
+            }
+        }
         public MainPage()
         {
             InitializeComponent();
@@ -87,19 +109,23 @@ namespace LocationDisplayer
         private async Task StartTracking(CancellationToken token)
         {
             GeolocationRequest request;
-            MarkerData data = new();
+            
             while (!token.IsCancellationRequested)
             {
                 try
                 {
-                    request = new GeolocationRequest(GeolocationAccuracy.Best);
+                     request = new GeolocationRequest(
+                                GeolocationAccuracy.Best,
+                                TimeSpan.FromSeconds(5));
 
                     Location? location = await Geolocation.Default.GetLocationAsync(request, _cancelTokenSource.Token);
                     
+                    
                     if (location != null)
                     {
+                        MarkerData data = new();
                         Trace.WriteLine($"Latitude: {location.Latitude}, Longitude: {location.Longitude}, Altitude: {location.Altitude}");
-                        data.timestamp = DateTime.Now.ToString();
+                        data.timestamp = DateTime.Now;
                         data.latitude = location.Latitude;
                         data.longitude = location.Longitude; 
                         
@@ -116,6 +142,24 @@ namespace LocationDisplayer
 
                 
             }
+        }
+
+        private async void OnExportData(object sender, EventArgs e)
+        {
+             ExportText = JsonSerializer.Serialize(
+            locations,
+            new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+
+            await Navigation.PushModalAsync(new ExportPage(ExportText));
+
+        }
+
+        private void CloseExport_Clicked(object sender, EventArgs e)
+        {
+            ShowExport = false;
         }
 
     }

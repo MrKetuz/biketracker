@@ -11,7 +11,7 @@
 
         <div class="stat">
             <div class="label">Distance</div>
-            <div class="value">@SegmentOfRoute.Distance km</div>
+            <div class="value">@SegmentOfRoute.Distance.ToString("0.000") km</div>
         </div>
 
         <div class="stat">
@@ -21,7 +21,7 @@
 
         <div class="stat">
             <div class="label">Avg Speed</div>
-            <div class="value">@SegmentOfRoute.Speed km/h</div>
+            <div class="value">@SegmentOfRoute.Speed.ToString("0.0") km/h</div>
         </div>
 
     </div>
