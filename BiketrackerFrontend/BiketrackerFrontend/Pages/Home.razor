@@ -42,16 +42,34 @@
 
 
 
-<button @onclick=AddPoints>Start</button>
-<button @onclick=addNewPoints>Add Points</button>
-<button @onclick="() => AddPointsTest(data)">Debug</button>
-<button @onclick=addDataJson">Add data from JSON</button>
+<InputText @bind-Value="Username" class="form-control"></InputText>
+<button @onclick="getRoutesFromUsername" class="btn-primary">Get Routes</button>
 
+<br /><br />
+
+@if (Routes.Any())
+{
+    <select @bind="selectedRouteId">
+        <option value="">-- Select Route --</option>
+
+        @foreach (var route in Routes)
+        {
+            <option value="@route.Id">
+                @route.Name
+            </option>
+        }
+    </select>
+
+    <button @onclick="loadRoute">
+        Load Route
+    </button>
+}
 
 @code {
     RealTimeMap? realTimeMap;
     private List<GpsPoint> _points = new();
     private int _index = 0;
+    private string Username = string.Empty;
     private 
 
 
@@ -74,71 +92,20 @@
     }
     InfoboxState State = InfoboxState.Overview;
 
-    private int? index1 = null;
-    private int? index2 = null;
-
     private DateTime? startTime = null;
     private DateTime? endTime = null;
 
-    List<List<double>> coordinates = new List<List<double>>() {
-    new List<double>() { 55.431559, 9.269902 },
-    new List<double>() { 55.433119, 9.289933 },
-    new List<double>() { 55.436990, 9.301812 },
-    new List<double>() { 55.434586, 9.287510 },
-    new List<double>() { 55.439917, 9.270226 }
-    };
 
-    List<GpsPoint> segment = new List<GpsPoint>();
+    List<RoutePointResponse> segment = new List<RoutePointResponse>();
     SegmentStats Route = new SegmentStats();
     SegmentStats SegmentOfRoute = new SegmentStats();
-    private List<GpsPoint> currentData = new List<GpsPoint>();
-
-    List<GpsPoint> data = new List<GpsPoint>()
-    {
-        new GpsPoint()
-        {
-            Lat = 55.431559,
-            Lng = 9.269902,
-            Timestamp = DateTime.Now
-        },
-
-        new GpsPoint()
-        {
-            Lat = 55.431712,
-            Lng = 9.271040,
-            Timestamp = DateTime.Now.AddSeconds(10)
-        },
-
-        new GpsPoint()
-        {
-            Lat = 55.433119,
-            Lng = 9.289933,
-            Timestamp = DateTime.Now.AddSeconds(20)
-        },
-
-        new GpsPoint()
-        {
-            Lat = 55.436990,
-            Lng = 9.301812,
-            Timestamp = DateTime.Now.AddSeconds(30)
-        },
-
-        new GpsPoint()
-        {
-            Lat = 55.434586,
-            Lng = 9.287510,
-            Timestamp = DateTime.Now.AddSeconds(40)
-        },
-
-        new GpsPoint()
-        {
-            Lat = 55.439917,
-            Lng = 9.270226,
-            Timestamp = DateTime.Now.AddSeconds(50)
-        },
-
-    };
-
+    private List<RoutePointResponse> currentData = new List<RoutePointResponse>();
+    private RouteResponse? routeResponse;
+    private List<RouteResponse> Routes = new List<RouteResponse>();
+    private long? selectedRouteId;
+    private List<RealTimeMap.MeasureLine> lines = new List<RealTimeMap.MeasureLine>();
+    private int i1 = 0;
+    private int i2 = 0;
 
 
     bool run = false;
@@ -188,65 +155,58 @@
         realTimeMap.Geometric.Points.upload(points);
     }
 
-    private void AddPointsTest(List<GpsPoint> data)
+    //Adds points to the map from a list of GpsPoint objects and sets the map view to center on the first point in the line.
+    private void AddPointsTest(List<RoutePointResponse> data)
     {
 
         realTimeMap.View.setCenter = new RealTimeMap.Location()
         {
-            latitude = data[1].Lat,
-            longitude = data[1].Lng,
+            latitude = data[1].Latitude,
+            longitude = data[1].Longitude,
         };
         realTimeMap.View.setZoomLevel = 16;
 
 
-        List<GeoJSONItem> inputPointsList = new();
-        foreach (var point in data)
-        {
-            try
-            {
-                inputPointsList.Add(new GeoJSONItem()
-                {
-                    type = "Feature",
-                    geometry = new PointGeometry()
-                    {
-                        type = "Point",
-                        coordinates = new double[2] { point.Lat, point.Lng },
-                        properties = new Properties()
-                        {
-                            dateTime = DateTime.Now,
-                        },
+        // List<GeoJSONItem> inputPointsList = new();
+        // foreach (var point in data)
+        // {
+        //     try
+        //     {
+        //         inputPointsList.Add(new GeoJSONItem()
+        //         {
+        //             type = "Feature",
+        //             geometry = new PointGeometry()
+        //             {
+        //                 type = "Point",
+        //                 coordinates = new double[2] { point.Latitude, point.Longitude },
+        //                 properties = new Properties()
+        //                 {
+        //                     dateTime = DateTime.Now,
+        //                 },
+        //             },
+        //         });
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         Logger.LogError("Error trying to add points to map: " + ex +"\n Point trying to be added Latitude: "+point.Latitude+" Longitude: "+point.Longitude);
 
-                    },
+        //     }
+        // }
 
+        // realTimeMap.Geometric.DataFromGeoJSON.addObject(new GeoJSONLayer
+        // {
+        //     name = "Route points",
+        //     data = inputPointsList.ToArray(),
+        //     appearance = new GeoJSONApperance
+        //     {
 
-                });
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError("Error trying to add points to map: " + ex +"\n Point trying to be added Latitude: "+point.Lat+" Longitude: "+point.Lng);
-
-            }
-
-        }
-
-
-
-        realTimeMap.Geometric.DataFromGeoJSON.addObject(new GeoJSONLayer
-        {
-            name = "Route points",
-            data = inputPointsList.ToArray(),
-            appearance = new GeoJSONApperance
-            {
-
-            },
-            visibilityZoomLevel = new RealTimeMap.VisibilityZoomLevel()
-            {
-                minZoomLevel = 15,
-                maxZoomLevel = 18
-            }
-        });
-
-
+        //     },
+        //     visibilityZoomLevel = new RealTimeMap.VisibilityZoomLevel()
+        //     {
+        //         minZoomLevel = 15,
+        //         maxZoomLevel = 18
+        //     }
+        // });
 
 
         addLines(data);
@@ -254,10 +214,6 @@
         currentData = data;
     }
 
-    private void addNewPoints()
-    {
-        addDummyData(data);
-    }
 
     private void debugValues()
     {
@@ -267,36 +223,30 @@
 
     }
 
-    private void addLines(List<GpsPoint> data)
+    //Adds lines between points in the data list and calculates the route stats.
+    private void addLines(List<RoutePointResponse> data)
     {
         int i = 0;
         foreach (var point in data)
         {
             if (i != data.Count - 1)
             {
-                double lat1 = data[i].Lat, lat2 = data[i + 1].Lat, lng1 = data[i].Lng, lng2 = data[i + 1].Lng;
+                double lat1 = data[i].Latitude, lat2 = data[i + 1].Latitude, lng1 = data[i].Longitude, lng2 = data[i + 1].Longitude;
 
-                DateTime timestamp1 = data[i].Timestamp, timestamp2 = data[i + 1].Timestamp;
+                DateTime timestamp1 = data[i].RecordedAt, timestamp2 = data[i + 1].RecordedAt;
 
                 double distance = calcDistanceBetweenPoints(lat1, lng1, lat2, lng2);
 
                 double speed = calcSpeed(distance, timestamp1, timestamp2);
 
-                realTimeMap.Geometric.DisplayPolylinesFromArray.addMeasure(
-                new RealTimeMap.MeasureLine
-                {
-                    start = new[] { lat1, lng1 },
-                    end = new[] { lat2, lng2 },
+                RealTimeMap.MeasureLine line = new RealTimeMap.MeasureLine
+                    {
+                        start = new[] { lat1, lng1 },
+                        end = new[] { lat2, lng2 },
 
-                    /*
-
-                    content = $"Distance: {distance} Meters  {(timestamp1 != null ? "Speed: " + speed + " km/h" : "Speed not found")}",
-
-                    labelStyle = "background:white;padding:4px;border-radius:4px;font-size:12px;"
-                    */
-
-                }
-                );
+                    };
+                lines.Add(line);
+                realTimeMap.Geometric.DisplayPolylinesFromArray.addMeasure(line);
                 i++;
             }
 
@@ -305,20 +255,21 @@
         Route = CalculateStats(data);
     }
 
-    //Calculates distance between two points, returns value as meters.
+    //Calculates distance between two points, returns value as kilometers.
     private double calcDistanceBetweenPoints(double lat1, double lng1, double lat2, double lng2)
     {
 
 
         double distance = realTimeMap.Geometric.Computations.distance(lat1, lng1, lat2, lng2, RealTimeMap.UnitOfMeasure.kilometers);
-        Logger.LogWarning($"Distance between points: {distance} kilometers");
+        Logger.LogDebug($"Distance between points: {distance} kilometers");
 
         return distance;
     }
 
+    //Calculates speed between two points, returns value as kilometers per hour.
     private double calcSpeed (double distance, DateTime timestamp1, DateTime timestamp2)
     {
-        return Math.Round(distance / (timestamp2 - timestamp1).TotalHours , 1); //Speed in km/h
+        return distance / (timestamp2 - timestamp1).TotalHours;
     }
 
     private void DEBUG()
@@ -327,36 +278,40 @@
         Logger.LogWarning($"Current timestamp: {timestamp}");
     }
 
+    //Event handler for map click events
     public void onClickMap(RealTimeMap.ClicksMapArgs value)
     {
+
+
         //where value.sender is RealTimeMap control reference
         Logger.LogWarning($"{value.location.latitude}");
         Logger.LogWarning($"{value.location.longitude}");
 
-        //Get first point
+        //Get first point, return if no point is close enough, otherwise change state to StartSelected
         if(State == InfoboxState.Overview)
         {
-            index1 = findClosestRoutePointIndex(currentData, value.location.latitude, value.location.longitude);
-            if (index1 == -1)
+            i1 = findClosestRoutePointIndex(currentData, value.location.latitude, value.location.longitude);
+            if (i1 == -1)
                 return;
             State = InfoboxState.StartSelected;
             return;
         }
+        //Get second point, return if no point is close enough or if it is the same as the first point, otherwise build segment and change state to SegmentSelected
         if(State == InfoboxState.StartSelected)
         {
-            index2 = findClosestRoutePointIndex(currentData, value.location.latitude, value.location.longitude);
-            if(index1 == index2 || index2 == -1)
+            i2 = findClosestRoutePointIndex(currentData, value.location.latitude, value.location.longitude);
+            if(i1 == i2 || i2 == -1)
                 return;
 
 
-            buildSegment();
+            buildSegment(i1, i2);
 
             State = InfoboxState.SegmentSelected;
         }
     }
 
-
-    int findClosestRoutePointIndex(List<GpsPoint> route, double clickLat, double clickLng)
+    //Gets closest point index in route to clicked point, returns -1 if no point is close enough.
+    int findClosestRoutePointIndex(List<RoutePointResponse> route, double clickLat, double clickLng)
     {
         double minDistance = double.MaxValue;
         int closestIndex = 0;
@@ -365,7 +320,7 @@
         {
             double d = calcDistanceBetweenPoints(
                 clickLat, clickLng,
-                route[i].Lat, route[i].Lng);
+                route[i].Latitude, route[i].Longitude);
 
             if (d < minDistance)
             {
@@ -381,13 +336,14 @@
         return closestIndex;
     }
 
-    private void buildSegment()
+    //Builds a segment of the route between two indices and calculates its stats.
+    private void buildSegment(int i1, int i2)
     {
         segment.Clear();
 
 
-        int start = Math.Min(index1.Value, index2.Value);
-        int end = Math.Max(index1.Value, index2.Value);
+        int start = Math.Min(i1, i2);
+        int end = Math.Max(i1, i2);
 
         for (int i = start; i <= end; i++)
         {
@@ -399,16 +355,17 @@
         SegmentOfRoute = CalculateStats(segment);
     }
 
-    private SegmentStats CalculateStats(List<GpsPoint> segment)
+    //Calculates distance, duration, and average speed for a segment of the route.
+    private SegmentStats CalculateStats(List<RoutePointResponse> segment)
     {
         double totalDistance = 0;
         TimeSpan totalTime = TimeSpan.Zero;
         for (int i = 0; i < segment.Count - 1; i++)
         {
             totalDistance += calcDistanceBetweenPoints(
-                segment[i].Lat, segment[i].Lng,
-                segment[i + 1].Lat, segment[i + 1].Lng);
-            totalTime += segment[i + 1].Timestamp - segment[i].Timestamp;
+                segment[i].Latitude, segment[i].Longitude,
+                segment[i + 1].Latitude, segment[i + 1].Longitude);
+            totalTime += segment[i + 1].RecordedAt - segment[i].RecordedAt;
         }
         double averageSpeed = totalTime.TotalHours > 0 ? totalDistance / totalTime.TotalHours : 0;
         return new SegmentStats
@@ -419,27 +376,45 @@
         };
     }
 
+    //Resets the state to Overview and clears the selected segment.
     private void ResetToOverview()
     {
-        index1 = null;
-        index2 = null;
         segment.Clear();
         State = InfoboxState.Overview;
 
         StateHasChanged();
     }
-    private async Task addDataJson()
+    // private async Task addDataJson()
+    // {
+    //     string jsonString = await Http.GetStringAsync("data/bikeride2.json");
+
+
+    //     currentData = JsonSerializer.Deserialize<List<RoutePointResponse>>(
+    //         jsonString,
+    //         new JsonSerializerOptions
+    //         {
+    //             PropertyNameCaseInsensitive = true
+    //         });
+
+    //     AddPointsTest(currentData);
+    // }
+    private async Task getRoutesFromUsername()
     {
-        string jsonString = await Http.GetStringAsync("data/bikeride2.json");
-
-
-        currentData = JsonSerializer.Deserialize<List<GpsPoint>>(
-            jsonString,
-            new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-        AddPointsTest(currentData);
+        Routes = await Http.GetFromJsonAsync<List<RouteResponse>>($"api/bikedata/user/{Username}");
     }
+    private async Task loadRoute()
+    {
+        if (selectedRouteId == null)
+            return;
+
+        routeResponse = await Http.GetFromJsonAsync<RouteResponse>
+        ($"api/bikedata/routes/{selectedRouteId}");
+
+        await realTimeMap.Geometric.DisplayPolylinesFromArray.deleteMeasure();
+
+        await realTimeMap.Geometric.DataFromGeoJSON.clearMap();
+
+        AddPointsTest(routeResponse.Points);
+    }
+
 }

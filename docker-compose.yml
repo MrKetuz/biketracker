@@ -1,0 +1,80 @@
+services:
+
+  mysql:
+    build:
+      context: ./mysql
+    container_name: biketracker-mysql
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: appdb
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+    
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+    ports:
+      - "3306:3306"
+
+    networks:
+      - biketracker-network
+
+
+  backend:
+    build:
+      context: ./BikeTrackerBackend/BikeTrackerBackend/BikeTrackerBackend
+
+    container_name: biketracker-backend
+    restart: unless-stopped
+
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: appdb
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+      
+
+    ports:
+      - "8080:8080"
+
+    networks:
+      - biketracker-network
+
+
+  frontend:
+    build:
+      context: ./BiketrackerFrontend/BiketrackerFrontend
+
+    container_name: biketracker-frontend
+    restart: unless-stopped
+
+    depends_on:
+      - backend
+
+    ports:
+      - "3000:80"
+
+    networks:
+      - biketracker-network
+
+
+volumes:
+  mysql_data:
+
+
+networks:
+  biketracker-network:
+    driver: bridge

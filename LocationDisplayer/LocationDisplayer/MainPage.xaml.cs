@@ -1,5 +1,4 @@
-﻿using GoogleGson;
-using LocationDisplayer.DataObjects;
+﻿using LocationDisplayer.DataObjects;
 using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;

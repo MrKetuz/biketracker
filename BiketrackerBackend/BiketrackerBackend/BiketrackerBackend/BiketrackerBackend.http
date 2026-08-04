@@ -1,0 +1,8 @@
+@BiketrackerBackend_HostAddress = https://localhost:32771
+
+GET {{BiketrackerBackend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+GET {{BiketrackerBackend_HostAddress}}/bikedata/
+Accept: application/json

@@ -1,0 +1,104 @@
+CREATE DATABASE IF NOT EXISTS appdb;
+
+CREATE USER IF NOT EXISTS 'appuser'@'%'
+IDENTIFIED BY 'apppassword';
+
+GRANT ALL PRIVILEGES ON appdb.* 
+TO 'appuser'@'%';
+
+FLUSH PRIVILEGES;
+
+USE appdb;
+
+CREATE TABLE IF NOT EXISTS Users (
+    Id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    Username VARCHAR(100) NOT NULL UNIQUE,
+
+    PasswordHash VARCHAR(255) NULL,
+
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+);
+
+CREATE TABLE IF NOT EXISTS ApiKeys (
+    Id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    UserId BIGINT UNSIGNED NOT NULL,
+
+    KeyHash CHAR(64) NOT NULL UNIQUE,
+
+    Name VARCHAR(100) NULL,
+
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    ExpiresAt DATETIME NULL,
+
+    LastUsedAt DATETIME NULL,
+
+    Revoked BOOLEAN NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT FK_ApiKeys_Users
+        FOREIGN KEY (UserId)
+        REFERENCES Users(Id)
+        ON DELETE CASCADE,
+
+    INDEX IX_ApiKeys_UserId (UserId),
+    INDEX IX_ApiKeys_KeyHash (KeyHash)
+);
+
+CREATE TABLE Routes (
+    Id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    UserId BIGINT UNSIGNED NOT NULL,
+
+    Name VARCHAR(150) NULL,
+
+    StartedAt DATETIME NULL,
+    FinishedAt DATETIME NULL,
+
+    DistanceMeters DOUBLE NULL,
+
+    DurationSeconds INT NULL,
+
+    PointCount INT UNSIGNED NOT NULL DEFAULT 0,
+
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+
+    CONSTRAINT FK_Routes_Users
+        FOREIGN KEY (UserId)
+        REFERENCES Users(Id)
+        ON DELETE CASCADE,
+
+
+    INDEX IX_Routes_UserId (UserId),
+    INDEX IX_Routes_UserId_Date (UserId, StartedAt)
+);
+
+CREATE TABLE RoutePoints (
+    RouteId BIGINT UNSIGNED NOT NULL,
+
+    Sequence INT UNSIGNED NOT NULL,
+
+    Latitude DOUBLE NOT NULL,
+
+    Longitude DOUBLE NOT NULL,
+
+    Elevation FLOAT NULL,
+
+    Speed FLOAT NULL,
+
+    Heading FLOAT NULL,
+
+    RecordedAt DATETIME NULL,
+
+
+    PRIMARY KEY(RouteId, Sequence),
+
+
+    CONSTRAINT FK_RoutePoints_Routes
+        FOREIGN KEY (RouteId)
+        REFERENCES Routes(Id)
+        ON DELETE CASCADE
+);
