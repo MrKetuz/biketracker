@@ -9,7 +9,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("Frontend", policy =>
     {
         policy
-            .WithOrigins("https://doom-loading-greatest-montgomery.trycloudflare.com")
+            .WithOrigins("https://meldgaardsen.dk", "https://www.meldgaardsen.dk")
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
