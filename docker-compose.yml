@@ -70,9 +70,18 @@ services:
     networks:
       - biketracker-network
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+
+    networks:
+      - biketracker-network
+
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+
 
 volumes:
   mysql_data:
+    external: true
 
 
 networks:

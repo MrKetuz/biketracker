@@ -8,7 +8,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient 
 { 
-    BaseAddress = new Uri("https://investigation-shown-cow-austin.trycloudflare.com/") 
+    BaseAddress = new Uri("https://meldgaardsen.dk/") 
 });
 
 await builder.Build().RunAsync();

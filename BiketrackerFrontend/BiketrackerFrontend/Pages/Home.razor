@@ -400,7 +400,14 @@
     // }
     private async Task getRoutesFromUsername()
     {
-        Routes = await Http.GetFromJsonAsync<List<RouteResponse>>($"api/bikedata/user/{Username}");
+        try
+        {
+            Routes = await Http.GetFromJsonAsync<List<RouteResponse>>($"api/bikedata/user/{Username}");
+        }
+        catch(Exception ex)
+        {
+            Logger.LogError($"Error fetching routes for username {Username}: {ex.Message}");
+        }
     }
     private async Task loadRoute()
     {
