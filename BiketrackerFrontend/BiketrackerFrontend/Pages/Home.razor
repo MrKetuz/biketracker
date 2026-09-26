@@ -8,7 +8,9 @@
 
 
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Bike Tracker</PageTitle>
+
+<h3>Bike Tracker</h3>
 
 <div class="map-layout">
 
@@ -20,6 +22,8 @@
       height="calc(80vh)" 
       width="100%"
       OnClickMap="onClickMap"></RealTimeMap>
+
+
 </div>
 <div class="infobox">   
         @switch (State)
@@ -37,13 +41,35 @@
             break;
     }
 
+
 </div>
 </div>
 
+<div class="input-field"
+    <InputText @bind-Value="Username" class="form-control" placeholder="Username"></InputText>
+    <button @onclick="getRoutesFromUsername" class="btn-primary">Get Routes</button> <br />
+    @if (getUser)
+    {
+        @if (response.IsSuccessStatusCode)
+        {
+            <span class="alert-success">Successfully aquired users routes!</span>
+        }
+        else
+        {
+            <span class="alert-danger">Failed trying to get routes from user: Error code: @response.StatusCode.ToString()</span>
+        }
+    }
+
+    @if (errorMessage != "")
+    {
+        <span class="alert-danger">@errorMessage.ToString()</span>
+    }
+
+</div>
 
 
-<InputText @bind-Value="Username" class="form-control"></InputText>
-<button @onclick="getRoutesFromUsername" class="btn-primary">Get Routes</button>
+
+
 
 <br /><br />
 
@@ -106,6 +132,9 @@
     private List<RealTimeMap.MeasureLine> lines = new List<RealTimeMap.MeasureLine>();
     private int i1 = 0;
     private int i2 = 0;
+    private HttpResponseMessage response = new HttpResponseMessage();
+    private bool getUser = false;
+    private string errorMessage = "";
 
 
     bool run = false;
@@ -398,15 +427,27 @@
 
     //     AddPointsTest(currentData);
     // }
+
+    //Gets routes from username
     private async Task getRoutesFromUsername()
     {
         try
         {
-            Routes = await Http.GetFromJsonAsync<List<RouteResponse>>($"api/bikedata/user/{Username}");
+
+            response = await Http.GetAsync($"api/bikedata/user/{Username}");
+            getUser = true;
+
+            if (response.IsSuccessStatusCode)
+            {
+                Routes = await response.Content.ReadFromJsonAsync<List<RouteResponse>>();
+            }
+
         }
         catch(Exception ex)
         {
             Logger.LogError($"Error fetching routes for username {Username}: {ex.Message}");
+
+            errorMessage = $"Error fetching routes";
         }
     }
     private async Task loadRoute()

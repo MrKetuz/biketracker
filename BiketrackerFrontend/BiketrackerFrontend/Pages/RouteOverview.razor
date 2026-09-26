@@ -3,32 +3,41 @@
 
     <h3>Route Overview</h3>
 
-    <div class="route-subtitle">
-        A → B
-    </div>
+    @if(Route.Distance <= 0)
+    {
+        <span>Waiting for user to select route.</span>  
+    }
 
-    <div class="stats-grid">
-
-        <div class="stat">
-            <div class="label">Distance</div>
-            <div class="value">@Route.Distance.ToString("0.000") km</div>
+    else
+    {
+        <div class="route-subtitle">
+            A → B
         </div>
 
-        <div class="stat">
-            <div class="label">Time</div>
-            <div class="value">@Route.Duration.ToString(@"hh\:mm\:ss"); </div>
+        <div class="stats-grid">
+
+            <div class="stat">
+                <div class="label">Distance</div>
+                <div class="value">@Route.Distance.ToString("0.000") km</div>
+            </div>
+
+            <div class="stat">
+                <div class="label">Time</div>
+                <div class="value">@Route.Duration.ToString(@"hh\:mm\:ss"); </div>
+            </div>
+
+            <div class="stat">
+                <div class="label">Avg Speed</div>
+                <div class="value">@Route.Speed.ToString("0.0") km/h</div>
+            </div>
+
         </div>
 
-        <div class="stat">
-            <div class="label">Avg Speed</div>
-            <div class="value">@Route.Speed.ToString("0.0") km/h</div>
+        <div class="hint">
+            Click the map to select a segment
         </div>
+    }
 
-    </div>
-
-    <div class="hint">
-        Click the map to select a segment
-    </div>
 
 </div>
 
