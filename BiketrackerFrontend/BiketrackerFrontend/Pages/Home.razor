@@ -41,6 +41,26 @@
             break;
     }
 
+        @if (Routes.Any())
+        {
+            <div class="route-box">
+                <select @bind="selectedRouteId">
+                    <option value="">-- Select Route --</option>
+
+                    @foreach (var route in Routes)
+                    {
+                        <option value="@route.Id">
+                            @route.Name
+                        </option>
+                    }
+                </select>
+                <br />
+                <button class="btn-primary" @onclick="loadRoute">
+                    Load Route
+                </button>
+            </div>
+
+        }
 
 </div>
 </div>
@@ -52,11 +72,11 @@
     {
         @if (response.IsSuccessStatusCode)
         {
-            <span class="alert-success">Successfully aquired users routes!</span>
+            <span class="alert-success">Successfully acquired the routes!</span>
         }
         else
         {
-            <span class="alert-danger">Failed trying to get routes from user: Error code: @response.StatusCode.ToString()</span>
+            <span class="alert-danger">Failed trying to get routes from user: Error: @response.StatusCode.ToString()</span>
         }
     }
 
@@ -73,23 +93,7 @@
 
 <br /><br />
 
-@if (Routes.Any())
-{
-    <select @bind="selectedRouteId">
-        <option value="">-- Select Route --</option>
 
-        @foreach (var route in Routes)
-        {
-            <option value="@route.Id">
-                @route.Name
-            </option>
-        }
-    </select>
-
-    <button @onclick="loadRoute">
-        Load Route
-    </button>
-}
 
 @code {
     RealTimeMap? realTimeMap;
